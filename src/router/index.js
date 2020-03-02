@@ -7,28 +7,28 @@ Vue.use(Router)
 import Layout from '@/layout'
 
 /**
- * Note: sub-menu only appear when route children.length >= 1
+ * 注：子菜单只出现在路线 children.length >= 1
  * Detail see: https://panjiachen.github.io/vue-element-admin-site/guide/essentials/router-and-nav.html
  *
- * hidden: true                   if set true, item will not show in the sidebar(default is false)
- * alwaysShow: true               if set true, will always show the root menu
- *                                if not set alwaysShow, when item has more than one children route,
- *                                it will becomes nested mode, otherwise not show the root menu
- * redirect: noRedirect           if set noRedirect will no redirect in the breadcrumb
- * name:'router-name'             the name is used by <keep-alive> (must set!!!)
+ * hidden: true                   如果设置为true，项目将不会在侧边栏显示（默认为false）
+ * alwaysShow: true               如果设置为true，将始终显示根菜单
+ *                                如果没有始终设置显示，当项目有不止一个孩子的路线，
+ *                                它会成为嵌套模式，否则不显示根菜单
+ * redirect: noRedirect           如果设置不重定向将在面包屑没有重定向
+ * name:'router-name'             名称用于通过保活>（必须设置！）
  * meta : {
-    roles: ['admin','editor']    control the page roles (you can set multiple roles)
-    title: 'title'               the name show in sidebar and breadcrumb (recommend set)
-    icon: 'svg-name'             the icon show in the sidebar
-    breadcrumb: false            if set false, the item will hidden in breadcrumb(default is true)
-    activeMenu: '/example/list'  if set path, the sidebar will highlight the path you set
+    roles: ['admin','editor']     控制页面的角色（可以设置多个角色）
+    title: 'title'                名称显示在侧边栏和面包屑（建议集)
+    icon: 'svg-name'              图标显示在侧边栏
+    breadcrumb: false             如果设置为false，该项目将隐藏在面包屑（默认为true）
+    activeMenu: '/example/list'   如果设定的路径，侧边栏会突出显示您设置的路径
   }
  */
 
 /**
- * constantRoutes
- * a base page that does not have permission requirements
- * all roles can be accessed
+ * 路线不变
+ * 基页是没有权限要求
+ * 所有角色可以访问
  */
 export const constantRoutes = [
   {
@@ -54,7 +54,27 @@ export const constantRoutes = [
       meta: { title: 'Dashboard', icon: 'dashboard' }
     }]
   },
-
+  {
+    path: '/minecraft',
+    component: Layout,
+    redirect: '/minecraft/mod/type',
+    name: 'minecraft',
+    meta: { title: '我的世界', icon: 'example' },
+    children: [
+      {
+        path: 'mod-type',
+        component: () => import('@/views/minecraft/modType/index'), // Parent router-view
+        name: 'mod-type',
+        meta: { title: '模组类型管理', icon: 'table' }
+      },
+      {
+        path: 'mod',
+        component: () => import('@/views/minecraft/mod/index'), // Parent router-view
+        name: 'mod',
+        meta: { title: '模组管理', icon: 'table' }
+      }
+    ]
+  },
   {
     path: '/example',
     component: Layout,
