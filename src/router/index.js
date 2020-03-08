@@ -63,13 +63,13 @@ export const constantRoutes = [
     children: [
       {
         path: 'mod-type',
-        component: () => import('@/views/minecraft/modType/index'), // Parent router-view
+        component: () => import('@/views/minecraft/modCategory/list'),
         name: 'mod-type',
         meta: { title: '模组类型管理', icon: 'table' }
       },
       {
         path: 'mod',
-        component: () => import('@/views/minecraft/mod/index'), // Parent router-view
+        component: () => import('@/views/minecraft/mod/list'),
         name: 'mod',
         meta: { title: '模组管理', icon: 'table' }
       }
