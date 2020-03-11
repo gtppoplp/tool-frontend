@@ -242,11 +242,13 @@ export default {
     resetTemp() {
       this.mod = {
         id: undefined,
+        categoryId: undefined,
         createdTime: undefined,
         name: '',
         description: '',
         isEnabled: true,
-        path: ''
+        path: '',
+        fileName: ''
       }
     },
     /* 创建窗口 */
