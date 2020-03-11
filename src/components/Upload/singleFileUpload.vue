@@ -8,6 +8,7 @@
         <i class="el-icon-upload el-icon-right" />
       </el-button>
       <el-button style="margin-left:16px;" size="mini" type="primary" icon="el-icon-delete" @click="removeUpload" />
+      <el-progress :stroke-width="16" :percentage="progressPercent" />
     </div>
   </div>
 </template>
@@ -23,7 +24,8 @@ export default {
   },
   data() {
     return {
-      loading: false
+      loading: false,
+      progressPercent: 0
     }
   },
   methods: {
@@ -39,8 +41,16 @@ export default {
       const data = new FormData()
       data.append('file', rawFile)
       this.$refs['upload-input'].value = null // 修复不能选择同一个Excel
-      upload(data).then(res => {
-        console.log(rawFile)
+      // 上传动作条
+      const config = {
+        onUploadProgress: progressEvent => {
+          // progressEvent.loaded:已上传文件大小
+          // progressEvent.total:被上传文件的总大小
+          this.progressPercent = Number((progressEvent.loaded / progressEvent.total * 100).toFixed(2))
+        }
+      }
+
+      upload(data, config).then(res => {
         if (res.code === 200) {
           this.$notify({
             title: res.message,

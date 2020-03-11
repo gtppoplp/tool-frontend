@@ -106,14 +106,14 @@
             <el-option v-for="item in modeTypeList" :key="item.id" :label="item.name" :value="item.id" />
           </el-select>
         </el-form-item>
-        <el-form-item label="是否汉化">
-          <el-select v-model="mod.isChinese" class="filter-item" placeholder="请选择">
-            <el-option v-for="item in isChineseOptions" :key="item.key" :label="item.label" :value="item.key" />
-          </el-select>
-        </el-form-item>
         <el-form-item label="是否应用到游戏">
           <el-select v-model="mod.isEnabled" class="filter-item" placeholder="请选择">
-            <el-option v-for="item in isEnabledOptions" :key="item.key" :label="item.label" :value="item.key" />
+            <el-option
+              v-for="item in isEnabledOptions"
+              :key="item.key"
+              :label="item.label"
+              :value="item.key"
+            />
           </el-select>
         </el-form-item>
         <el-form-item label="说明">
@@ -127,7 +127,7 @@
         <!--上传文件-->
         <el-form-item label="文件" prop="path">
           <upload-component :before-upload="beforeUpload" :remove-upload="removeUpload" />
-          <span v-if="fileName !== ''" :autosize="{ minRows: 2, maxRows: 4}">{{ fileName }}</span>
+          <span v-if=" mod.path !== ''" :autosize="{ minRows: 2, maxRows: 4}">{{ mod.fileName }}</span>
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
@@ -191,23 +191,18 @@ export default {
         createdTime: undefined,
         name: '',
         description: '',
-        isChinese: true,
         isEnabled: true,
-        path: ''
+        path: '',
+        fileName: ''
       },
       /* 模型类型 */
       modeTypeList: [],
-      fileName: '',
       dialogFormVisible: false,
       dialogStatus: '',
       textMap: {
         update: '修改模型',
         create: '创建模型'
       },
-      isChineseOptions: [
-        { label: '是', key: true },
-        { label: '否', key: false }
-      ],
       isEnabledOptions: [
         { label: '是', key: true },
         { label: '否', key: false }
@@ -250,7 +245,6 @@ export default {
         createdTime: undefined,
         name: '',
         description: '',
-        isChinese: true,
         isEnabled: true,
         path: ''
       }
@@ -333,14 +327,15 @@ export default {
     },
     /* 文件上传 */
     beforeUpload(file, path) {
-      this.fileName = path !== '' ? file.name : ''
+      console.log(file)
       this.mod.path = path !== '' ? path : ''
+      this.mod.fileName = path !== '' ? file.name : ''
       return true
     },
     /* 文件删除 */
     removeUpload() {
       this.mod.path = ''
-      this.fileName = ''
+      this.mod.fileName = ''
       return true
     },
     /* excel 下载*/

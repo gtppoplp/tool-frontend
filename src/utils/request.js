@@ -14,8 +14,10 @@ const service = axios.create({
 // 请求拦截器
 service.interceptors.request.use(
   config => {
-    // 做一些以前请求发送
-
+    // 做一些以前请求发送(不知道这个能改不,不规范)
+    if (config.config !== undefined && config.config.onUploadProgress !== undefined) {
+      config.onUploadProgress = config.config.onUploadProgress
+    }
     if (store.getters.token) {
       // 让每个请求进位标记
       // ['X-Token'] 是一个自定义标题密钥
@@ -31,17 +33,11 @@ service.interceptors.request.use(
   }
 )
 
-// response interceptor
+// 响应拦截
 service.interceptors.response.use(
   /**
-   * If you want to get http information such as headers or status
-   * Please return  response => response
-  */
-
-  /**
-   * Determine the request status by custom code
-   * Here is just an example
-   * You can also judge the status by HTTP Status Code
+   * 如果你想获得HTTP信息，如标题或状态，请返回响应=>响应
+   * 确定由自定义代码在这里，请求状态仅仅是一个例子也可以通过HTTP状态代码判断状态
    */
   response => {
     const res = response.data
