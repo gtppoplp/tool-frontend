@@ -65,13 +65,19 @@
           <span class="link-type">{{ row.name }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="说明" min-width="50px" align="center">
+      <el-table-column label="说明" width="50px" align="center">
         <template slot-scope="{row}">
           <span>{{ row.description }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="操作" align="center" width="200px" class-name="small-padding fixed-width">
+      <el-table-column label="操作" align="center" min-width="150px" class-name="small-padding fixed-width">
         <template slot-scope="{row}">
+          <el-button type="success" size="mini" @click="handleChinese(row)">
+            通知汉化
+          </el-button>
+          <el-button type="success" size="mini" @click="handleLang(row)">
+            读取lang内容
+          </el-button>
           <el-button type="primary" size="mini" @click="handleUpdate(row)">
             编辑
           </el-button>
@@ -148,7 +154,9 @@ import {
   minecraftModCreate,
   minecraftModUpdate,
   minecraftModDelete,
-  minecraftModCategoryAll
+  minecraftModCategoryAll,
+  minecraftModLang,
+  minecraftModChinese
 } from '@/api/minecraft/mod'
 
 import waves from '@/directive/waves' // waves directive
@@ -312,6 +320,32 @@ export default {
             return true
           })
         }
+      })
+    },
+    /* 通知汉化*/
+    handleChinese(row) {
+      minecraftModChinese(row.id).then(res => {
+        this.$notify({
+          title: res.message,
+          message: res.data,
+          type: 'success',
+          duration: 2000
+        })
+        this.dialogFormVisible = false
+        this.getList()
+      })
+    },
+    /* 通知读取lang*/
+    handleLang(row) {
+      minecraftModLang(row.id).then(res => {
+        this.$notify({
+          title: res.message,
+          message: res.data,
+          type: 'success',
+          duration: 2000
+        })
+        this.dialogFormVisible = false
+        this.getList()
       })
     },
     /* 删除 */
