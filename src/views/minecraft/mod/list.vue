@@ -4,11 +4,51 @@
       <!--搜索-->
       <el-input
         v-model="listQuery.name"
-        placeholder="类型名称"
+        placeholder="模型名称"
         style="width: 200px;"
         class="filter-item"
         @keyup.enter.native="handleFilter"
       />
+      <!--查询-类型-->
+      <el-select
+        v-model="listQuery.categoryId"
+        placeholder="类型"
+        clearable
+        style="width: 120px"
+        class="filter-item"
+      >
+        <el-option v-for="item in modeTypeList" :key="item.name" :label="item.name" :value="item.id" />
+      </el-select>
+      <!--查询-读取lang状态-->
+      <el-select
+        v-model="listQuery.langStatus"
+        placeholder="读取lang状态"
+        clearable
+        style="width: 150px"
+        class="filter-item"
+      >
+        <el-option v-for="item in langStatusList" :key="item.key" :label="item.label" :value="item.key" />
+      </el-select>
+      <!--查询-汉化状态-->
+      <el-select
+        v-model="listQuery.chineseStatus"
+        placeholder="汉化状态"
+        clearable
+        style="width: 150px"
+        class="filter-item"
+      >
+        <el-option v-for="item in chineseStatusList" :key="item.key" :label="item.label" :value="item.key" />
+      </el-select>
+      <!--查询-应用到游戏状态-->
+      <el-select
+        v-model="listQuery.enabledStatus"
+        placeholder="应用到游戏状态"
+        clearable
+        style="width: 150px"
+        class="filter-item"
+      >
+        <el-option v-for="item in enabledStatusList" :key="item.key" :label="item.label" :value="item.key" />
+      </el-select>
       <!--搜索按钮-->
       <el-button v-waves class="filter-item" type="primary" icon="el-icon-search" @click="handleFilter">
         搜索
@@ -45,38 +85,65 @@
       highlight-current-row
       style="width: 100%;"
     >
-      <el-table-column
-        label="序号"
-        prop="id"
-        align="center"
-        width="200px"
-      >
-        <template slot-scope="{row}">
-          <span>{{ row.id }}</span>
-        </template>
-      </el-table-column>
-      <el-table-column label="创建时间" width="200px" align="center">
+      <el-table-column label="创建时间" width="160px" align="center">
         <template slot-scope="{row}">
           <span>{{ row.createdTime }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="模型名称" width="150px" align="center">
+      <el-table-column label="模型名称" width="250px" align="center" show-overflow-tooltip>
         <template slot-scope="{row}">
           <span class="link-type">{{ row.name }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="说明" width="50px" align="center">
+      <el-table-column label="说明" width="100px" align="center" show-overflow-tooltip>
         <template slot-scope="{row}">
           <span>{{ row.description }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="操作" align="center" min-width="150px" class-name="small-padding fixed-width">
+      <!--读取lang状态-->
+      <el-table-column class-name="status-col" label="读取lang状态" width="110px">
         <template slot-scope="{row}">
+          <el-tag :type="row.langStatus | langStatusTypeFilter">
+            {{ row.langStatus | langStatusFilter }}
+          </el-tag>
+        </template>
+      </el-table-column>
+      <!--汉化状态-->
+      <el-table-column class-name="status-col" label="汉化状态" width="110px">
+        <template slot-scope="{row}">
+          <el-tag :type="row.chineseStatus | chineseStatusTypeFilter">
+            {{ row.chineseStatus | chineseStatusFilter }}
+          </el-tag>
+        </template>
+      </el-table-column>
+      <!--应用到游戏状态-->
+      <el-table-column class-name="status-col" label="应用到游戏状态" width="120px">
+        <template slot-scope="{row}">
+          <el-tag :type="row.enabledStatus | enabledStatusTypeFilter">
+            {{ row.enabledStatus | enabledStatusFilter }}
+          </el-tag>
+        </template>
+      </el-table-column>
+      <el-table-column label="消息操作" align="center" min-width="30px" class-name="small-padding fixed-width">
+        <template slot-scope="{row}">
+          <el-button type="success" size="mini" @click="handleEnabled(row)">
+            应用到游戏
+          </el-button>
           <el-button type="success" size="mini" @click="handleChinese(row)">
-            通知汉化
+            汉化
           </el-button>
           <el-button type="success" size="mini" @click="handleLang(row)">
-            读取lang内容
+            读取字段
+          </el-button>
+        </template>
+      </el-table-column>
+      <el-table-column label="操作" align="center" min-width="50px" class-name="small-padding fixed-width">
+        <template slot-scope="{row}">
+          <el-button type="primary" size="mini" @click="handleLangUpdate(row)">
+            编辑lang内容
+          </el-button>
+          <el-button type="" size="mini" @click="handleLog(row)">
+            错误日志
           </el-button>
           <el-button type="primary" size="mini" @click="handleUpdate(row)">
             编辑
@@ -87,12 +154,73 @@
         </template>
       </el-table-column>
     </el-table>
+    <!--编辑lang内容-->
+    <el-dialog :visible.sync="dialogLangVisible" title="lang内容">
+      <el-table :data="langDataList" border fit highlight-current-row style="width: 200%">
+        <el-table-column show-overflow-tooltip prop="field" label="字段" />
+        <el-table-column show-overflow-tooltip prop="enLang" label="未翻译" />
+        <el-table-column min-width="300px" label="翻译">
+          <template slot-scope="{row}">
+            <template v-if="row.edit">
+              <el-input v-model="row.lang" class="edit-input" size="small" />
+              <el-button
+                class="cancel-btn"
+                size="small"
+                icon="el-icon-refresh"
+                type="warning"
+                @click="cancelEdit(row)"
+              >
+                取消
+              </el-button>
+            </template>
+            <span v-else>{{ row.lang }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column show-overflow-tooltip prop="isChinese" :formatter="isChineseFilter" label="是否汉化" />
+        <!--操作按钮-->
+        <el-table-column align="center" label="操作" width="120">
+          <template slot-scope="{row}">
+            <el-button
+              v-if="row.edit"
+              type="success"
+              size="small"
+              icon="el-icon-circle-check-outline"
+              @click="confirmEdit(row)"
+            >
+              提交
+            </el-button>
+            <el-button
+              v-else
+              type="primary"
+              size="small"
+              icon="el-icon-edit"
+              @click="row.edit=!row.edit"
+            >
+              Edit
+            </el-button>
+          </template>
+        </el-table-column>
+      </el-table>
+      <span slot="footer" class="dialog-footer">
+        <el-button type="primary" @click="dialogLangVisible = false">关闭</el-button>
+      </span>
+    </el-dialog>
+    <!--日志框体-->
+    <el-dialog :visible.sync="dialogLogVisible" title="错误日志">
+      <el-table :data="logDataList" border fit highlight-current-row style="width: 100%">
+        <el-table-column prop="type" label="日志类型" width="100px" />
+        <el-table-column prop="log" label="内容" />
+      </el-table>
+      <span slot="footer" class="dialog-footer">
+        <el-button type="primary" @click="dialogLogVisible = false">关闭</el-button>
+      </span>
+    </el-dialog>
     <!--添加按钮框体-->
     <pagination
       v-show="total>0"
       :total="total"
-      :page.sync="listQuery.current"
-      :limit.sync="listQuery.size"
+      :page.sync="listQuery.pageNum"
+      :limit.sync="listQuery.pageSize"
       @pagination="getList"
     />
     <el-dialog :title="textMap[dialogStatus]" :visible.sync="dialogFormVisible">
@@ -110,16 +238,6 @@
         <el-form-item label="模型类型" prop="name">
           <el-select v-model="mod.categoryId" style="width: 140px" class="filter-item">
             <el-option v-for="item in modeTypeList" :key="item.id" :label="item.name" :value="item.id" />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="是否应用到游戏">
-          <el-select v-model="mod.isEnabled" class="filter-item" placeholder="请选择">
-            <el-option
-              v-for="item in isEnabledOptions"
-              :key="item.key"
-              :label="item.label"
-              :value="item.key"
-            />
           </el-select>
         </el-form-item>
         <el-form-item label="说明">
@@ -156,7 +274,11 @@ import {
   minecraftModDelete,
   minecraftModCategoryAll,
   minecraftModLang,
-  minecraftModChinese
+  minecraftModChinese,
+  minecraftModEnabled,
+  minecraftModLogAll,
+  minecraftModLangAll,
+  minecraftModLangUpdate
 } from '@/api/minecraft/mod'
 
 import waves from '@/directive/waves' // waves directive
@@ -168,11 +290,57 @@ export default {
   components: { Pagination, UploadComponent },
   directives: { waves },
   filters: {
-    statusFilter(status) {
+    langStatusTypeFilter(status) {
       const statusMap = {
-        published: 'success',
-        draft: 'info',
-        deleted: 'danger'
+        1: 'success',
+        2: '',
+        3: 'danger',
+        0: 'info'
+      }
+      return statusMap[status]
+    },
+    chineseStatusTypeFilter(status) {
+      const statusMap = {
+        1: 'success',
+        2: '',
+        3: 'danger',
+        0: 'info'
+      }
+      return statusMap[status]
+    },
+    enabledStatusTypeFilter(status) {
+      const statusMap = {
+        1: 'success',
+        2: '',
+        3: 'danger',
+        0: 'info'
+      }
+      return statusMap[status]
+    },
+    langStatusFilter(status) {
+      const statusMap = {
+        1: '完成',
+        2: '提取中',
+        3: '提取失败',
+        0: '未提取'
+      }
+      return statusMap[status]
+    },
+    chineseStatusFilter(status) {
+      const statusMap = {
+        1: '已汉化',
+        2: '汉化中',
+        3: '汉化失败',
+        0: '未汉化'
+      }
+      return statusMap[status]
+    },
+    enabledStatusFilter(status) {
+      const statusMap = {
+        1: '已应用',
+        2: '应用中',
+        3: '应用失败',
+        0: '未应用'
       }
       return statusMap[status]
     }
@@ -189,7 +357,11 @@ export default {
       listQuery: {
         pageNum: 1,
         pageSize: 20,
-        name: undefined
+        name: undefined,
+        categoryId: undefined,
+        langStatus: undefined,
+        chineseStatus: undefined,
+        enabledStatus: undefined
       },
       showReviewer: false,
       /* 模型 */
@@ -205,6 +377,28 @@ export default {
       },
       /* 模型类型 */
       modeTypeList: [],
+      /* lang状态 */
+      langStatusList: [
+        { label: '完成', key: 1 },
+        { label: '提取中', key: 2 },
+        { label: '提取失败', key: 3 },
+        { label: '未提取', key: 0 }
+      ],
+      /* 汉化状态 */
+      chineseStatusList: [
+        { label: '已汉化', key: 1 },
+        { label: '汉化中', key: 2 },
+        { label: '汉化失败', key: 3 },
+        { label: '未汉化', key: 0 }
+      ],
+      /* 应用到游戏状态 */
+      enabledStatusList: [
+        { label: '已应用', key: 1 },
+        { label: '应用中', key: 2 },
+        { label: '应用失败', key: 3 },
+        { label: '未应用', key: 0 }
+      ],
+      /* 编辑添加对话框 */
       dialogFormVisible: false,
       dialogStatus: '',
       textMap: {
@@ -215,7 +409,13 @@ export default {
         { label: '是', key: true },
         { label: '否', key: false }
       ],
-      pvData: [],
+      /* 编辑lang内容对话框 */
+      dialogLangVisible: false,
+      langDataList: [],
+      /* 错误日志对话框 */
+      dialogLogVisible: false,
+      /* 错误日志内容列表 */
+      logDataList: [],
       rules: {
         type: [{ required: true, message: 'type is required', trigger: 'change' }],
         timestamp: [{ type: 'date', required: true, message: 'timestamp is required', trigger: 'change' }],
@@ -240,6 +440,10 @@ export default {
         this.total = response.data.total
         this.listLoading = false
       })
+      // 获取类型数据
+      minecraftModCategoryAll().then(response => {
+        this.modeTypeList = response.data
+      })
     },
     /* 搜索过滤器 */
     handleFilter() {
@@ -256,7 +460,10 @@ export default {
         description: '',
         isEnabled: true,
         path: '',
-        fileName: ''
+        fileName: '',
+        langStatus: '',
+        chineseStatus: '',
+        enabledStatus: ''
       }
     },
     /* 创建窗口 */
@@ -287,6 +494,28 @@ export default {
             this.getList()
           })
         }
+      })
+    },
+    /* 日志内容窗口 */
+    handleLog(row) {
+      this.dialogLogVisible = true
+      this.logDataList = []
+      // 获取类型数据
+      minecraftModLogAll(row.id).then(response => {
+        this.logDataList = response.data
+      })
+    },
+    /* 编辑lang内容窗口 */
+    handleLangUpdate(row) {
+      this.dialogLangVisible = true
+      this.langDataList = []
+      // 获取类型数据
+      minecraftModLangAll(row.id).then(response => {
+        this.langDataList = response.data.map(v => {
+          this.$set(v, 'edit', false)
+          v.originalLang = v.lang
+          return v
+        })
       })
     },
     /* 编辑窗口 */
@@ -320,6 +549,42 @@ export default {
             return true
           })
         }
+      })
+    },
+    /* lang-取消行内修改 */
+    cancelEdit(row) {
+      row.lang = row.originalLang
+      row.edit = false
+      this.$message({
+        message: '翻译内容已恢复到原来的值',
+        type: 'warning'
+      })
+    },
+    /* lang-内容修改 */
+    confirmEdit(row) {
+      row.edit = false
+      row.originalLang = row.lang
+      minecraftModLangUpdate(row.id, row).then(res => {
+        this.$notify({
+          title: res.message,
+          message: res.data,
+          type: 'success',
+          duration: 2000
+        })
+        return true
+      })
+    },
+    /* 应用到游戏*/
+    handleEnabled(row) {
+      minecraftModEnabled(row.id).then(res => {
+        this.$notify({
+          title: res.message,
+          message: res.data,
+          type: 'success',
+          duration: 2000
+        })
+        this.dialogFormVisible = false
+        this.getList()
       })
     },
     /* 通知汉化*/
@@ -393,6 +658,14 @@ export default {
       return this.list.map(v => filterVal.map(j => {
         return v[j]
       }))
+    },
+    /* 状态转换 */
+    isChineseFilter(row, column) {
+      if (row.isChinese === true) {
+        return '是'
+      } else {
+        return '否'
+      }
     }
   }
 }
