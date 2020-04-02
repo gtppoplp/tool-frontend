@@ -92,3 +92,11 @@ export function minecraftModLangUpdate(id, data) {
     data
   })
 }
+
+/* 我的世界-模组管理-编辑lang内容 */
+export function minecraftModUnableChinese(id) {
+  return request({
+    url: `/minecraft/mod/unable/chinese/${id}`,
+    method: 'put'
+  })
+}

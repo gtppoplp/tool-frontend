@@ -126,19 +126,22 @@
       </el-table-column>
       <el-table-column label="消息操作" align="center" min-width="30px" class-name="small-padding fixed-width">
         <template slot-scope="{row}">
-          <el-button type="success" size="mini" @click="handleEnabled(row)">
-            应用到游戏
+          <el-button type="success" size="mini" @click="handleLang(row)">
+            读取字段
           </el-button>
           <el-button type="success" size="mini" @click="handleChinese(row)">
             汉化
           </el-button>
-          <el-button type="success" size="mini" @click="handleLang(row)">
-            读取字段
+          <el-button type="success" size="mini" @click="handleEnabled(row)">
+            应用到游戏
           </el-button>
         </template>
       </el-table-column>
       <el-table-column label="操作" align="center" min-width="50px" class-name="small-padding fixed-width">
         <template slot-scope="{row}">
+          <el-button type="mini" size="danger" @click="handleUnableChinese(row)">
+            无法汉化
+          </el-button>
           <el-button type="primary" size="mini" @click="handleLangUpdate(row)">
             编辑lang内容
           </el-button>
@@ -278,7 +281,8 @@ import {
   minecraftModEnabled,
   minecraftModLogAll,
   minecraftModLangAll,
-  minecraftModLangUpdate
+  minecraftModLangUpdate,
+  minecraftModUnableChinese
 } from '@/api/minecraft/mod'
 
 import waves from '@/directive/waves' // waves directive
@@ -603,6 +607,19 @@ export default {
     /* 通知读取lang*/
     handleLang(row) {
       minecraftModLang(row.id).then(res => {
+        this.$notify({
+          title: res.message,
+          message: res.data,
+          type: 'success',
+          duration: 2000
+        })
+        this.dialogFormVisible = false
+        this.getList()
+      })
+    },
+    /* 无法汉化*/
+    handleUnableChinese(row) {
+      minecraftModUnableChinese(row.id).then(res => {
         this.$notify({
           title: res.message,
           message: res.data,
